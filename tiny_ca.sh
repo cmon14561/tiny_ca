@@ -41,6 +41,8 @@ default_days      = 3650
 preserve          = no
 policy            = policy_strict
 
+copy_extensions   = copy
+
 [ policy_strict ]
 countryName             = match
 stateOrProvinceName     = match
@@ -144,14 +146,21 @@ function cert_gen() {
 
 	_PRE=''
 	_SUB=''
-	if [[ "$1" = "wildcard" ]]; then
-		_PRE=${SRV_DIR}/wildcard.${DOMAIN}
-		_SUB="/C=CA/ST=${DOMAIN}/O=${DOMAIN}/CN=*.${DOMAIN}"
-	else
-		_PRE=${SRV_DIR}/${DOMAIN}
-		_SUB="/C=CA/ST=${DOMAIN}/O=${DOMAIN}/CN=${DOMAIN}"
-	fi
-
+        _SANS=''
+        if [[ "$1" = "wildcard" ]]; then
+                _PRE=${SRV_DIR}/wildcard.${DOMAIN}
+                _SUB="/C=CA/ST=${DOMAIN}/O=${DOMAIN}/CN=*.${DOMAIN}"
+                _SANS="\"subjectAltName = DNS:*.${DOMAIN}\""
+        elif [[ "$1" = "domain" ]]; then
+                _PRE=${SRV_DIR}/${DOMAIN}
+                _SUB="/C=CA/ST=${DOMAIN}/O=${DOMAIN}/CN=${DOMAIN}"
+                _SANS="\"subjectAltName = DNS:${DOMAIN}\""
+        else
+                _PRE=${SRV_DIR}/$1.${DOMAIN}
+                _SUB="/C=CA/ST=${DOMAIN}/O=${DOMAIN}/CN=$1.${DOMAIN}"
+                _SANS="subjectAltName = DNS:$1.${DOMAIN}"
+        fi
+	
 	_KEY=${_PRE}.key.pem
 	_CRT=${_PRE}.crt.pem
 	_DER=${_PRE}.crt.der
@@ -169,7 +178,8 @@ function cert_gen() {
 		openssl req -config ${CA_CNF} \
 			-key ${_KEY} \
 			-new -sha256 -out ${_CSR} \
-			-subj ${_SUB}
+			-subj ${_SUB} \
+                        -addext "${_SANS}"
 
 		echo --- Generate Server Certificate
 		openssl ca -config ${CA_CNF} \
