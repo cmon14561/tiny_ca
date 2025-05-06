@@ -150,11 +150,11 @@ function cert_gen() {
         if [[ "$1" = "wildcard" ]]; then
                 _PRE=${SRV_DIR}/wildcard.${DOMAIN}
                 _SUB="/C=CA/ST=${DOMAIN}/O=${DOMAIN}/CN=*.${DOMAIN}"
-                _SANS="\"subjectAltName = DNS:*.${DOMAIN}\""
+                _SANS="subjectAltName = DNS:*.${DOMAIN}"
         elif [[ "$1" = "domain" ]]; then
                 _PRE=${SRV_DIR}/${DOMAIN}
                 _SUB="/C=CA/ST=${DOMAIN}/O=${DOMAIN}/CN=${DOMAIN}"
-                _SANS="\"subjectAltName = DNS:${DOMAIN}\""
+                _SANS="subjectAltName = DNS:${DOMAIN}"
         else
                 _PRE=${SRV_DIR}/$1.${DOMAIN}
                 _SUB="/C=CA/ST=${DOMAIN}/O=${DOMAIN}/CN=$1.${DOMAIN}"
